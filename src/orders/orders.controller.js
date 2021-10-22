@@ -10,6 +10,7 @@ const nextId = require("../utils/nextId");
 
 //middleware section
 
+//This checks the order properties else it returns an error if there is no properties
   function propertiesExist(property) {
     return (req, res, next) => {
       const { data = {} } = req.body;
@@ -21,10 +22,12 @@ const nextId = require("../utils/nextId");
     };
   }
 
-  const deliverToProperty= propertiesExist("deliverTo");
+  //Here the properties are defined
+  const deliverToProperty = propertiesExist("deliverTo");
   const mobileNumberProperty = propertiesExist("mobileNumber");
   const dishesProperty = propertiesExist("dishes");
 
+  //This checks the quantity of the order, there should be at least one dish and within that dish the quantity must be greater than zero
   function checkQuantity(req,res,next){
     const data = req.body.data || {};
   
@@ -52,6 +55,7 @@ const nextId = require("../utils/nextId");
   next();
 }
 
+//This checks that the order exists
 function orderExists(req, res, next) {
   const { orderId } = req.params;
   const order = orders.find((order) => order.id === orderId);
@@ -65,6 +69,7 @@ function orderExists(req, res, next) {
   next();
 }
 
+//This validates: That the order id matches the routeid and that the order has a status
 function validateID(req, res, next) {
   const { data: { id, status } = {} } = req.body;
   const { orderId } = req.params;
@@ -88,6 +93,7 @@ function validateID(req, res, next) {
   next();
 }
 
+//This validates that an order can't be deleted in pending status
 function statusValid(req, res, next) {
   const order = res.locals.order;
   if (order.status !== "pending") {
@@ -100,11 +106,14 @@ function statusValid(req, res, next) {
 }
 
 //create, read, update, destroy, and list section
-const list = (req, res) => {
+
+//list
+function list(req, res) {
   res.json({ data: orders });
 };
 
-const create = (req, res, next) => {
+//create
+function create(req, res, next) {
   const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
 
   const newOrder = {
@@ -120,16 +129,20 @@ const create = (req, res, next) => {
   res.status(201).json({ data: newOrder });
 };
 
-const read = (req, res) => {
+//read
+
+function read(req, res) {
   res.json({ data: res.locals.order });
 };
 
+//update
 function update(req, res) {
   const { id } = res.locals.order;
   Object.assign(res.locals.order, req.body.data, { id });
   res.json({ data: res.locals.order });
 }
 
+//delete
 function destroy(req, res) {
   const index = orders.findIndex((order) => order.id === res.locals.order);
   orders.splice(index, 1);
